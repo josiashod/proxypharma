@@ -48,17 +48,15 @@ class _MapScreenState extends State<MapScreen> {
           ),
           Padding(
             padding: const EdgeInsets.only(top: 50, left: 10, right: 10),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(30),
-              child: Container(
-                color: Colors.white,
-                child: ListTile(
-                  minLeadingWidth: 0,
-                  leading: Icon(Icons.notes, color: Theme.of(context).primaryColor),
-                  title: const CupertinoSearchTextField(
-                    itemColor: Colors.teal,
-                    backgroundColor: Colors.white,
-                  ),
+            child: Card(
+              elevation: 10,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              child: ListTile(
+                minLeadingWidth: 0,
+                leading: Icon(Icons.notes, color: Theme.of(context).primaryColor),
+                title: const CupertinoSearchTextField(
+                  itemColor: Colors.teal,
+                  backgroundColor: Colors.white,
                 ),
               ),
             )
