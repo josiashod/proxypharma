@@ -52,9 +52,10 @@ class _MapScreenState extends State<MapScreen> {
               borderRadius: BorderRadius.circular(30),
               child: Container(
                 color: Colors.white,
-                child:  const ListTile(
-                  trailing: Icon(Icons.menu),
-                  title: CupertinoSearchTextField(
+                child: ListTile(
+                  minLeadingWidth: 0,
+                  leading: Icon(Icons.notes, color: Theme.of(context).primaryColor),
+                  title: const CupertinoSearchTextField(
                     itemColor: Colors.teal,
                     backgroundColor: Colors.white,
                   ),
@@ -67,19 +68,25 @@ class _MapScreenState extends State<MapScreen> {
         floatingActionButton: Theme(
           data: ThemeData.dark(),
           child: FabCircularMenu(
-            fabChild: Icon(Icons.add),
-              ringColor: Colors.teal.withOpacity(0.5),
+            ringDiameter: 300,
+            fabChild: const Icon(Icons.add),
+              ringColor: Colors.teal.withOpacity(0.0),
               fabCloseColor: Colors.teal,
               children: <Widget>[
-                IconButton(icon: Icon(Icons.directions), onPressed: () {
-                  print('Home');
-                }),
-                IconButton(icon: Icon(Icons.favorite), onPressed: () {
-                  print('Favorite');
-                }),
-                IconButton(icon: Icon(Icons.directions_bike), onPressed: () {
-                  print('Favorite');
-                }),
+                FloatingActionButton(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  onPressed: () {
+
+                  },
+                  child: const Icon(Icons.insert_drive_file_outlined, color: Colors.white,),
+                ),
+                FloatingActionButton(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  onPressed: () {
+
+                  },
+                  child: Image.asset("assets/Vector.png"),
+                ),
               ]
           ),
         ),
