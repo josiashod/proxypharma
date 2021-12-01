@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Dimensions,View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native'
-import { Ionicons, Feather } from '@expo/vector-icons'
+import { Dimensions, View, Text, TouchableOpacity, StyleSheet, Image, SafeAreaView } from 'react-native'
+import { Ionicons, Feather, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Modalize } from 'react-native-modalize'
-import MapView, { Marker } from 'react-native-maps'
+import MapView, { Marker, Polyline } from 'react-native-maps'
 import * as Location from 'expo-location';
-
+import MapViewDirections from 'react-native-maps-directions'
+import { Api } from '../api/lienapi'
+const GOOGLE_API_KEY = "AIzaSyDOUwKD-J_smbux5mgU_rt8uH31czYy5sQ"
 
 const home = (props) => {
     var mapStyles = [
@@ -58,33 +60,20 @@ const home = (props) => {
         }
     ]
     const [region, setRegion] = useState(null)
-    // const [location, setLocation] = useState(null)
+    const [location, setLocation] = useState(null)
     const [pharmacies, setPharmacies] = useState({
         'pharmacies': [],
         'on_call_pharmacies': [],
     })
-    const [errorMsg, setErrorMsg] = useState(null)
+    // const [errorMsg, setErrorMsg] = useState(null)
     const [active, setActive] = useState('pharmacies')
-    const [selectedPharmacy, setSelectedPharmacy] = useState({
-        "created_at": "26-11-2021 12:14:14",
-        "distance": 0.3363880611205903,
-        "email": null,
-        "id": 1144,
-        "image": "https://awss3bucket-aladecouvertedubenin.s3.eu-central-1.amazonaws.com/1622718034622-pharmacie.jpg",
-        "latitude": 6.3811515,
-        "longitude": 2.4017752,
-        "name": "Pharmacie vie nouvelle",
-        "on_call": null,
-        "phone": null,
-        "thumbnail_image": "https://awss3bucket-aladecouvertedubenin.s3.eu-central-1.amazonaws.com/1622718035947-thumbnail_pharmacie.jpg",
-        "updated_at": null,
-        "website": "",
-      })
+    const [selectedPharmacy, setSelectedPharmacy] = useState(null)
+    const [trajectory, setTrajectory] = useState(null)
 
     const modalizeRef = useRef(null);
 
     const onOpen = (pharmacy) => {
-        // console.log(pharmacy)
+        console.log(pharmacy)
         setSelectedPharmacy(pharmacy)
         modalizeRef.current?.open();
     };
@@ -96,7 +85,7 @@ const home = (props) => {
 
     const getPharmacies = async(region) => {
         try {
-            let response = await fetch(`http://192.168.100.6:8000/api/pharmacies/nearest/?lat=${region.latitude}&lng=${region.longitude}`)
+            let response = await fetch(`${Api}pharmacies/nearest/?lat=${region.latitude}&lng=${region.longitude}`)
             
             const json = await response.json()
             setPharmacies(json.data)
@@ -108,13 +97,14 @@ const home = (props) => {
 
     useEffect(() => {
         (async () => {
-            let { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== 'granted') {
-                setErrorMsg('Permission to access location was denied');
-                return;
-            }
+            // let { status } = await Location.requestForegroundPermissionsAsync();
+            // if (status !== 'granted') {
+            //     setErrorMsg('Permission to access location was denied');
+            //     return;
+            // }
 
             let location = await Location.getCurrentPositionAsync({});
+            setLocation(location)
             setRegion({
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
@@ -129,6 +119,24 @@ const home = (props) => {
             getPharmacies(region)
 
     } , [region])
+
+    const user_to_pharmacy = () => {
+        let user_location = {longitude: location.coords.longitude, latitude: location.coords.latitude,}
+
+        let pharmacy_location = {latitude: selectedPharmacy.latitude, longitude: selectedPharmacy.longitude}
+        // let user_location = {latitude: pharmacies[active][0].latitude, longitude: pharmacies[active][0].longitude}
+
+        // console.log(pharmacy_location)
+        setTrajectory([user_location, pharmacy_location])
+    }
+
+    const is_open = () => {
+        // selectedPharmacy
+        let current_hour = (new Date()).getHours();
+        if (current_hour > 22 && selectedPharmacy.on_call)
+            return true
+        return false
+    }
 
     return (
         <View style={styles.container/*{flex: 1, paddingTop: 52, backgroundColor:"cyan", paddingLeft: 15, paddingRight: 15,}*/}>
@@ -152,6 +160,17 @@ const home = (props) => {
                         <Image source={require('../assets/marker.png')} style={{width: 30, height: 30}} />
                     </Marker>
                 ))}
+
+                {
+                    trajectory && 
+                    <MapViewDirections 
+                        origin={trajectory[0]}
+                        destination={trajectory[1]}
+                        apikey={GOOGLE_API_KEY} // insert your API Key here
+                        strokeWidth={4}
+                        strokeColor="#111111"
+                    />
+                }
             </MapView>
 
             <TouchableOpacity onPress={() => props.navigation.navigate('Search') } activeOpacity={0.9} style={styles.input_container}>
@@ -159,7 +178,7 @@ const home = (props) => {
                 <Text style={styles.input}>Rechercher une pharmacie</Text>
             </TouchableOpacity>
 
-            <View style={styles.tabs} >
+            <SafeAreaView style={styles.tabs} >
                 <TouchableOpacity onPress={() => changeTab('on_call_pharmacies')} style={{ backgroundColor: 'white', justifyContent: 'center', alignItems: 'center', paddingTop: 4, paddingBottom: 4, textAlign: 'center', flexGrow: 1, height: '100%' }} >
                     <Ionicons name="locate" size={24} color={active === 'on_call_pharmacies' ? '#00897E' : 'black'} />
                     <Text style={[{textAlign: 'center', fontFamily: 'Mulish'}, active === 'on_call_pharmacies' ? { color: '#00897E' } : { color: 'black' } ]}>De garde</Text>
@@ -169,7 +188,7 @@ const home = (props) => {
                     <Ionicons name="locate" size={24} color={active === 'pharmacies' ? '#00897E' : 'black'} />
                     <Text style={[{textAlign: 'center', fontFamily: 'Mulish'}, active === 'pharmacies' ? { color: '#00897E' } : { color: 'black' } ]}>Toutes</Text>
                 </TouchableOpacity>
-            </View>
+            </SafeAreaView>
             
             <Modalize 
                 ref={modalizeRef} 
@@ -179,18 +198,30 @@ const home = (props) => {
                 overlayStyle={styles.overlay_background}
                 modalStyle={styles.modal_style}
             >
-                <Text style={{fontFamily: 'Mulish', fontSize: 20, color: 'black', marginBottom: 1}}>{selectedPharmacy.name}</Text>
-                <Text style={{fontSize: 15, color: '#c1c1c1'}}> {selectedPharmacy.distance.toPrecision(2)} km</Text>
-                <View style={{ marginTop:'12%', width: '100%', paddingVertical: 1, display: 'flex', flexDirection: 'row' }}>
-                    <TouchableOpacity style={[styles.badge_button, { marginRight: 10, backgroundColor: '#00897E', }]}>
-                        <Feather name="info" size={20} color="#fff" />
+                <SafeAreaView style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom:'6%'}}>
+                    <SafeAreaView style={{}}>
+                        <Text style={{fontFamily: 'Mulish', fontSize: 20, color: 'black', marginBottom: 1}}>{selectedPharmacy ? selectedPharmacy.name : ""}</Text>
+                        <Text style={{fontSize: 16, color: '#aeaeae'}}> {selectedPharmacy ? selectedPharmacy.distance.toPrecision(2) : ""} km</Text>
+                        
+                        <SafeAreaView style={{ flexDirection: 'row' }}>
+                            { selectedPharmacy && selectedPharmacy.phone && <Text style={{fontSize: 16, color: '#aeaeae', marginRight: 10}}>Tel : {selectedPharmacy.phone}</Text> }
+                            <Text style={[{fontSize: 16}, is_open() ? {color: '#00897E'} : {color: 'red'} ]}>{ is_open() ? 'Ouvert' : 'Fermé'}</Text>
+                        </SafeAreaView>
+
+                    </SafeAreaView>
+                    { selectedPharmacy && <Image source={{ uri: selectedPharmacy.thumbnail_image}} style={{width: 60, height: 60, borderRadius: 40}} />}
+                </SafeAreaView>
+
+                <SafeAreaView style={{ width: '100%', paddingVertical: 1, display: 'flex', flexDirection: 'row' }}>
+                    <TouchableOpacity onPress={() => user_to_pharmacy()} style={[styles.badge_button, { marginRight: 10, backgroundColor: '#00897E', }]}>
+                        <MaterialCommunityIcons name="directions" size={20} color="#fff" />
                         <Text style={{marginLeft: 6 ,alignSelf: 'center', fontSize: 16 ,fontFamily: 'Mulish', textAlign: 'center', color: 'white'}}>Itinéraire</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={[styles.badge_button, { marginRight: 10, }]}>
                         <Feather name="info" size={20} color="#00897E" />
-                        <Text style={{ marginLeft: 6 ,alignSelf: 'center', fontSize: 16 ,fontFamily: 'Mulish', textAlign: 'center', color: '#00897E'}}>Détails</Text>
+                        <Text style={{ marginLeft: 6 ,alignSelf: 'center', fontSize: 16 ,fontFamily: 'Mulish', textAlign: 'center', color: '#00897E'}}>Consulter</Text>
                     </TouchableOpacity>
-                </View>
+                </SafeAreaView>
             </Modalize>
         </View>
     )
