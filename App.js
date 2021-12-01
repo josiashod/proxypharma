@@ -9,6 +9,8 @@ import { persistStore } from 'redux-persist'
 import { PersistGate } from 'redux-persist/es/integration/react'
 
 import * as Location from 'expo-location';
+import { useFonts } from 'expo-font';
+import AppLoading from 'expo-app-loading';
 
 const Store = configureStore()
 const persistor = persistStore(Store)
@@ -17,6 +19,14 @@ export default function App() {
 
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+  let [fontsLoaded] = useFonts({
+    // Load a font `Mulish` from a static resource
+    Mulish: require('./assets/fonts/Mulish-Regular.ttf'),
+
+    // Any string can be used as the fontFamily name. Here we use an object to provide more control
+    'Mulish-SemiBold': require('./assets/fonts/Mulish-SemiBold.ttf'),
+    'Mulish-ExtraLight': require('./assets/fonts/Mulish-ExtraLight.ttf'),
+  });
 
   useEffect(() => {
     (async () => {
@@ -28,15 +38,11 @@ export default function App() {
 
       let location = await Location.getCurrentPositionAsync({});
       setLocation(location);
-      console.log(location)
     })();
   }, []);
 
-  let text = 'Waiting..';
-  if (errorMsg) {
-    text = errorMsg;
-  } else if (location) {
-    text = JSON.stringify(location);
+  if(!fontsLoaded) {
+    return <AppLoading />
   }
 
   return (
