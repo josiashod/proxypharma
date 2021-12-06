@@ -1,15 +1,11 @@
 {
   "expo": {
-    "name": "josiasProject",
-    "slug": "josiasProject",
+    "name": "Proxypharm",
+    "slug": "Proxypharm",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "automatic",
     "updates": {
       "fallbackToCacheTimeout": 0
     },

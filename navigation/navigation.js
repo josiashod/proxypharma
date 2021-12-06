@@ -16,7 +16,17 @@ import Recoverymdp from '../screen/auth/recoverymdp'
 
 import Home from '../screen/home'
 import Search from '../screen/search'
+import Pharmacy from '../screen/pharmacy'
+import Splash from '../screen/splash'
 
+// const Stack = createStackNavigator({
+//     Splash: {
+//         screen: Splash,
+//         navigationOptions: {headerShown: false}
+//     }},{
+//         initialRouteName: 'Splash',
+//     }
+// )
 const Stack = createStackNavigator()
 
 const StackConnexion = () => {
@@ -47,6 +57,17 @@ const StackConnexion = () => {
 
 }
 
+const StackSplash = () => {
+    
+
+    return (<Stack.Navigator screenOptions={{ headerShown: false }}>
+
+        <Stack.Screen 
+            name="Splash" component={Splash}
+        />
+
+    </Stack.Navigator>)
+}
 
 const StackMain = () => {
 
@@ -63,6 +84,10 @@ const StackMain = () => {
                 name="Search" component={Search}
             />
 
+            <Stack.Screen
+                name="Pharmacy" component={Pharmacy}
+            />
+
         </Stack.Navigator>
 
 
@@ -74,27 +99,14 @@ const StackMain = () => {
 const navigation = () => {
 
     const first_use = useSelector(state => state.parameterReducer.first_use);
-    const connected = useSelector(state => state.parameterReducer.connected);
+    const splash = useSelector(state => state.parameterReducer.splash);
+    // const connected = useSelector(state => state.parameterReducer.connected);
 
     return (
 
-        <NavigationContainer >
+        <NavigationContainer>
 
-            {first_use ?
-
-                <Onbording/>
-
-            :
-
-                // !connected ?
-
-                //     <StackConnexion/>
-
-                // :
-
-                <StackMain/>
-            
-            }
+            { splash ? <StackSplash /> : first_use ? <Onbording /> : <StackMain />  }
 
         </NavigationContainer>
         

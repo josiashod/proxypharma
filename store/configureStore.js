@@ -27,7 +27,8 @@ const configureStore = () => {
     // Non-secure (ExpoFileSystemStorage) storage
     const root_persist_config = {
         key: 'parametreapp',
-        storage: ExpoFileSystemStorage
+        storage: ExpoFileSystemStorage,
+        blacklist: ['splash']
     }
 
 

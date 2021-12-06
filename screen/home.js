@@ -69,11 +69,12 @@ const home = (props) => {
     const [active, setActive] = useState('pharmacies')
     const [selectedPharmacy, setSelectedPharmacy] = useState(null)
     const [trajectory, setTrajectory] = useState(null)
+    let markers = []
 
     const modalizeRef = useRef(null);
 
     const onOpen = (pharmacy) => {
-        console.log(pharmacy)
+        // console.log(pharmacy)
         setSelectedPharmacy(pharmacy)
         modalizeRef.current?.open();
     };
@@ -83,7 +84,7 @@ const home = (props) => {
             setActive(tab)
     }
 
-    const getPharmacies = async(region) => {
+    const getPharmacies = async() => {
         try {
             let response = await fetch(`${Api}pharmacies/nearest/?lat=${region.latitude}&lng=${region.longitude}`)
             
@@ -116,7 +117,7 @@ const home = (props) => {
 
     useEffect(() => {
         if(region != null)
-            getPharmacies(region)
+            getPharmacies()
 
     } , [region])
 
@@ -133,7 +134,7 @@ const home = (props) => {
     const is_open = () => {
         // selectedPharmacy
         let current_hour = (new Date()).getHours();
-        if (current_hour > 22 && selectedPharmacy.on_call)
+        if (current_hour <= 22 || selectedPharmacy.on_call)
             return true
         return false
     }
@@ -148,16 +149,17 @@ const home = (props) => {
                 customMapStyle={mapStyles}
                 loadingEnabled={true}
                 toolbarEnabled={false}
-                onRegionChangeComplete={(region, move) => { if(move.isGesture) setRegion(region)}}
+                onRegionChangeComplete={(region, move) => { if(move.isGesture) setRegion(region), markers = [] }}
             >
                 {pharmacies[active].map((pharmacy, index) => (
                     <Marker
-                        key={index}
+                        key={pharmacy.id}
                         coordinate={{latitude: pharmacy.latitude, longitude: pharmacy.longitude}}
                         title={pharmacy.name}
-                        onCalloutPress={() => onOpen(pharmacy)}
+                        ref={ref => { markers[index] = ref }}
+                        onCalloutPress={() => {onOpen(pharmacy), markers[index].hideCallout()}}
                     >
-                        <Image source={require('../assets/marker.png')} style={{width: 30, height: 30}} />
+                        <Image source={require('../assets/icons/marker.png')} style={{width: 30, height: 30}} />
                     </Marker>
                 ))}
 
@@ -192,22 +194,22 @@ const home = (props) => {
             
             <Modalize 
                 ref={modalizeRef} 
-                snapPoint={Dimensions.get("window").height * 0.26} 
-                modalHeight={Dimensions.get("window").height * 0.26} 
+                snapPoint={Dimensions.get("window").height * 0.284} 
+                modalHeight={Dimensions.get("window").height * 0.284} 
                 withHandle={false}
                 overlayStyle={styles.overlay_background}
                 modalStyle={styles.modal_style}
+                onClose={() => setSelectedPharmacy(null)}
             >
                 <SafeAreaView style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom:'6%'}}>
-                    <SafeAreaView style={{}}>
-                        <Text style={{fontFamily: 'Mulish', fontSize: 20, color: 'black', marginBottom: 1}}>{selectedPharmacy ? selectedPharmacy.name : ""}</Text>
-                        <Text style={{fontSize: 16, color: '#aeaeae'}}> {selectedPharmacy ? selectedPharmacy.distance.toPrecision(2) : ""} km</Text>
+                    <SafeAreaView style={{flexShrink: 1}}>
+                        <Text style={{fontFamily: 'Mulish', fontSize: 20, color: 'black', marginBottom: 1, flexShrink: 0}}>{selectedPharmacy ? selectedPharmacy.name : ""}</Text>
+                        <Text style={{fontSize: 16, color: '#A7ABAD'}}> {selectedPharmacy ? selectedPharmacy.distance.toPrecision(2) : ""} km</Text>
                         
                         <SafeAreaView style={{ flexDirection: 'row' }}>
-                            { selectedPharmacy && selectedPharmacy.phone && <Text style={{fontSize: 16, color: '#aeaeae', marginRight: 10}}>Tel : {selectedPharmacy.phone}</Text> }
-                            <Text style={[{fontSize: 16}, is_open() ? {color: '#00897E'} : {color: 'red'} ]}>{ is_open() ? 'Ouvert' : 'Fermé'}</Text>
+                            { selectedPharmacy && selectedPharmacy.phone && <Text style={{fontSize: 16, color: '#A7ABAD', marginRight: 10}}>Tel : {selectedPharmacy.phone}</Text> }
+                            <Text style={[{fontSize: 16}, is_open ? {color: '#00897E'} : {color: '#DA645C'} ]}>{ is_open ? 'Ouvert' : 'Fermé'}</Text>
                         </SafeAreaView>
-
                     </SafeAreaView>
                     { selectedPharmacy && <Image source={{ uri: selectedPharmacy.thumbnail_image}} style={{width: 60, height: 60, borderRadius: 40}} />}
                 </SafeAreaView>
@@ -217,7 +219,7 @@ const home = (props) => {
                         <MaterialCommunityIcons name="directions" size={20} color="#fff" />
                         <Text style={{marginLeft: 6 ,alignSelf: 'center', fontSize: 16 ,fontFamily: 'Mulish', textAlign: 'center', color: 'white'}}>Itinéraire</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={[styles.badge_button, { marginRight: 10, }]}>
+                    <TouchableOpacity onPress={() => { props.navigation.navigate('Pharmacy', { 'pharmacy': selectedPharmacy }) }} style={[styles.badge_button, { marginRight: 10, }]}>
                         <Feather name="info" size={20} color="#00897E" />
                         <Text style={{ marginLeft: 6 ,alignSelf: 'center', fontSize: 16 ,fontFamily: 'Mulish', textAlign: 'center', color: '#00897E'}}>Consulter</Text>
                     </TouchableOpacity>

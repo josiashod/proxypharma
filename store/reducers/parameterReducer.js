@@ -7,6 +7,8 @@ const parameter_state = {
 
   connected: false,
 
+  splash: true,
+
 
   // snackbar: {
   //   val: false,
@@ -39,6 +41,15 @@ function parameterReducer(state = parameter_state, action) {
 
       return nextState || state;
 
+    case 'setSplash':
+
+      nextState = produce(state, prev_state => {
+        prev_state.splash = action.value
+      })
+
+      return nextState || state;
+  
+  
 
     // case 'ModifSnack':
 
