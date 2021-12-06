@@ -67,11 +67,17 @@ export default function Search(props) {
                     renderItem={({item}) => (
                         <TouchableOpacity onPress={() => { props.navigation.navigate('Pharmacy', { 'pharmacy': item }) }} style={styles.itemContainer} activeOpacity={0.4}>
                             <SafeAreaView style={{ marginRight: 15, alignSelf: 'center' }}>
-                                <Image
-                                    source={require('./assets/icons/drug-icon.png')}
-                                    fadeDuration={0}
-                                    style={{ width: 50, height: 50 }}
-                                />
+                                <Ionicons 
+                                    name="location-outline" 
+                                    size={24} 
+                                    color="#3E4245" 
+                                    style={{ 
+                                        alignSelf: 'center',
+                                        backgroundColor: '#E9EAEE',
+                                        paddingHorizontal: 5,
+                                        paddingVertical: 4,
+                                        borderRadius: 20 
+                                    }}/>
                                 <Text style={{fontSize: 13, color: '#A7ABAD'}}> {item.distance.toPrecision(2)} km</Text>
                             </SafeAreaView>
                             <SafeAreaView style={styles.itemleft}>
