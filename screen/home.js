@@ -149,11 +149,14 @@ const home = (props) => {
                 customMapStyle={mapStyles}
                 loadingEnabled={true}
                 toolbarEnabled={false}
-                onRegionChangeComplete={(region, move) => { if(move.isGesture) setRegion(region), markers = [] }}
+                onRegionChangeComplete={(region, move) => { 
+                    if(move.isGesture)
+                        setRegion(region)
+                }}
             >
                 {pharmacies[active].map((pharmacy, index) => (
                     <Marker
-                        key={pharmacy.id}
+                        key={index}
                         coordinate={{latitude: pharmacy.latitude, longitude: pharmacy.longitude}}
                         title={pharmacy.name}
                         ref={ref => { markers[index] = ref }}
@@ -182,12 +185,36 @@ const home = (props) => {
 
             <SafeAreaView style={styles.tabs} >
                 <TouchableOpacity onPress={() => changeTab('on_call_pharmacies')} style={{ backgroundColor: 'white', justifyContent: 'center', alignItems: 'center', paddingTop: 4, paddingBottom: 4, textAlign: 'center', flexGrow: 1, height: '100%' }} >
-                    <Ionicons name="locate" size={24} color={active === 'on_call_pharmacies' ? '#00897E' : 'black'} />
-                    <Text style={[{textAlign: 'center', fontFamily: 'Mulish'}, active === 'on_call_pharmacies' ? { color: '#00897E' } : { color: 'black' } ]}>De garde</Text>
+                    {/* <Ionicons name="locate" size={24} color={active === 'on_call_pharmacies' ? '#00897E' : 'black'} /> */}
+                    {active === 'on_call_pharmacies' ? <Image
+                            source={require('../assets/icons/pharmacy-icon.png')}
+                            fadeDuration={0}
+                            style={{ width: 25, height: 25 }}
+                        />
+                        :
+                        <Image
+                            source={require('../assets/icons/pharmacy_garde_inactive-icon.png')}
+                            fadeDuration={0}
+                            style={{ width: 25, height: 25 }}
+                        />
+                    }
+                    <Text style={[{textAlign: 'center', fontFamily: 'Mulish'}, active === 'on_call_pharmacies' ? { color: '#00897E' } : { color: 'black' } ]}>Gardes</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => changeTab('pharmacies')} style={{ backgroundColor: 'white', justifyContent: 'center', alignItems: 'center', paddingTop: 4, paddingBottom: 4, textAlign: 'center', flexGrow: 1, height: '100%' }} >
-                    <Ionicons name="locate" size={24} color={active === 'pharmacies' ? '#00897E' : 'black'} />
+                    {/* <Ionicons name="locate" size={24} color={active === 'pharmacies' ? '#00897E' : 'black'} /> */}
+                    {active === 'pharmacies' ? <Image
+                            source={require('../assets/icons/pharmacy.png')}
+                            fadeDuration={10}
+                            style={{ width: 30, height: 30 }}
+                        />
+                        :
+                        <Image
+                            source={require('../assets/icons/pharmacy_inactive-icon.png')}
+                            fadeDuration={10}
+                            style={{ width:24, height: 24 }}
+                        />
+                    }
                     <Text style={[{textAlign: 'center', fontFamily: 'Mulish'}, active === 'pharmacies' ? { color: '#00897E' } : { color: 'black' } ]}>Toutes</Text>
                 </TouchableOpacity>
             </SafeAreaView>

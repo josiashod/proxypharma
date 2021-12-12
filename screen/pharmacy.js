@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Dimensions, SafeAreaView, Image } from 'react-native'
+import { ActivityIndicator, View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Dimensions, SafeAreaView, Image } from 'react-native'
 import { AntDesign, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons'
 import { Api } from '../api/lienapi'
 import * as Location from 'expo-location';
@@ -7,6 +7,9 @@ import * as Location from 'expo-location';
 export default function Pharmacy(props) {
     const [search, setSearch] = useState('')
     const [drugs, setDrugs] = useState([])
+    const [loading, setLoading] = useState(false)
+    const [loadingMore, setLoadingMore] = useState(false)
+    const [nextLink, setNextLink] = useState(null)
 
     // const [location, setLocation] = useState([])
 
@@ -20,14 +23,36 @@ export default function Pharmacy(props) {
     // }, []);
 
     const getDrugs = async() => {
+        setLoading(true)
         try {
             let response = await fetch(`${Api}pharmacies/${pharmacy.id}/drug/?q=${search}`)
             
             const json = await response.json()
-            setDrugs(json.data)
+            setDrugs(json.results)
+            setNextLink(json.next)
+            setLoading(false)
 
         } catch (error) {
+            setLoading(false)
             console.error(error);
+        }
+    }
+
+    const loadMoreData = async() => {
+        if (nextLink) {
+            setLoadingMore(true)
+            try {
+                let response = await fetch(nextLink)
+                
+                const json = await response.json()
+                setDrugs([...drugs, ...json.results])
+                setNextLink(json.next)
+                setLoadingMore(false)
+    
+            } catch (error) {
+                setLoadingMore(false)
+                console.error(error);
+            }
         }
     }
 
@@ -85,35 +110,50 @@ export default function Pharmacy(props) {
                         </TouchableOpacity>
                     </SafeAreaView>
                 </SafeAreaView>
-
-                { (drugs.length > 0 && search.length > 0) && <SafeAreaView style={{ flexDirection: 'column' }} >
+                { (search.length > 0) && (
+                    (drugs.length > 0) ? <SafeAreaView style={{ flexDirection: 'column' }} >
                         <Text style={{ fontFamily: 'Mulish', fontSize: 20, marginBottom: 10 }}> Résultats </Text>
-                        <FlatList
-                            data={drugs}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({item}) => (
-                                <SafeAreaView style={styles.itemContainer} activeOpacity={0.4}>
-                                    <SafeAreaView style={{ marginRight: 15, alignSelf: 'center' }}>
-                                        <Ionicons 
-                                            name="location-outline" 
-                                            size={24} 
-                                            color="#3E4245" 
-                                            style={{ 
-                                                alignSelf: 'center',
-                                                backgroundColor: '#E9EAEE',
-                                                paddingHorizontal: 5,
-                                                paddingVertical: 4,
-                                                borderRadius: 20 
-                                            }}/>
+                        <View style={styles.listContainer}>
+                            <FlatList
+                                data={drugs}
+                                keyExtractor={(item) => item.id}
+                                renderItem={({item}) => (
+                                    <SafeAreaView style={styles.itemContainer} activeOpacity={0.4}>
+                                        <SafeAreaView style={{ marginRight: 15, alignSelf: 'center' }}>
+                                            <Image
+                                                source={require('../assets/icons/drug-icon.png')}
+                                                fadeDuration={0}
+                                                style={{ width: 40, height: 40 }}
+                                            />
+                                        </SafeAreaView>
+                                        <SafeAreaView style={styles.itemleft}>
+                                            <Text style={{ fontSize: 18, fontFamily: 'Mulish-SemiBold' }}>{item.name + " ( " + item.type + ' )'}</Text>
+                                            <SafeAreaView style={{ flexDirection: 'row' }} >
+                                                <Text style={{fontSize: 15, marginRight: 20, color: '#A7ABAD'}}> { item.dose.replace(/ /g,'') } </Text>
+                                                <Text style={{fontSize: 15, color: '#00897E'}}> En stock </Text>
+                                            </SafeAreaView>
+                                        </SafeAreaView>
                                     </SafeAreaView>
-                                    <SafeAreaView style={styles.itemleft}>
-                                        <Text style={{ fontSize: 18 }}>{item.name}</Text>
-                                        <Text style={{fontSize: 15}}> { item.dose } </Text>
-                                    </SafeAreaView>
-                                </SafeAreaView>
-                            )}/>
-                    </SafeAreaView>
-                }
+                                )}
+                                onEndReached={loadMoreData}
+                                onEndReachedThreshold={0.5}
+                                ListFooterComponent={ loadingMore ? <ActivityIndicator size="large" color="#00897E" style={{ marginVertical: 10 }} /> : null}
+                                />
+                        </View>
+                    </SafeAreaView> : loading ? 
+                        <ActivityIndicator size="large" color="#00897E"/> 
+
+                        :
+                        
+                        <SafeAreaView style={{ justifyContent: 'center', alignContent: 'center' }} >
+                            <Image
+                                source={require('../assets/icons/indisponible.png')}
+                                fadeDuration={0}
+                                resizeMode="contain"
+                                style={{ width: 200, height: 200, alignSelf: 'center', marginTop: 20 }}
+                            />
+                        </SafeAreaView>
+                )}
             </View>
         </View>
     );
@@ -148,7 +188,7 @@ const styles = StyleSheet.create({
         color: '#202125'
     },
     listContainer: {
-        flex: 1,
+        height: '76%'
     },
     itemContainer: {
         flex: 1,
@@ -159,12 +199,13 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
     },
     itemleft: {
-        flexDirection: 'row',
+        // flexDirection: 'row',
         justifyContent: 'space-between',
         flexGrow: 1,
         alignSelf: 'center',
         height: '100%',
-        paddingBottom: 14,
+        flexShrink: 1
+        // paddingBottom: 14,
     },
     badge_button:{
         paddingHorizontal: 14,

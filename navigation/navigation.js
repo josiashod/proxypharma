@@ -106,7 +106,7 @@ const navigation = () => {
 
         <NavigationContainer>
 
-            { splash ? <StackSplash /> : first_use ? <Onbording /> : <StackMain />  }
+            { splash ? <StackSplash /> : /*first_use ? <Onbording /> : */<StackMain />  }
 
         </NavigationContainer>
         
