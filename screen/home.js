@@ -79,6 +79,7 @@ const home = (props) => {
         distance: 0,
     })
     const [drive_start, setDriveStart] = useState(false)
+    const [modal_closed, setModalClosed] = useState(true)
 
     let markers = []
 
@@ -96,14 +97,16 @@ const home = (props) => {
     }
 
     const getPharmacies = async() => {
-        try {
-            let response = await fetch(`${Api}pharmacies/nearest/?lat=${region.latitude}&lng=${region.longitude}`)
-            
-            const json = await response.json()
-            setPharmacies(json.data)
-
-        } catch (error) {
-            console.error(error);
+        if (!trajectory) {
+            try {
+                let response = await fetch(`${Api}pharmacies/nearest/?lat=${region.latitude}&lng=${region.longitude}`)
+                
+                const json = await response.json()
+                setPharmacies(json.data)
+    
+            } catch (error) {
+                console.error(error);
+            }
         }
     }
 
@@ -123,6 +126,10 @@ const home = (props) => {
                 latitudeDelta: 0.025,
                 longitudeDelta: 0.0042,
             })
+
+            if ((new Date()).getHours() >= 21 || (new Date()).getHours() <= 7) {
+                setActive('on_call_pharmacies')
+            }
         })();
     }, []);
 
@@ -132,21 +139,48 @@ const home = (props) => {
 
     } , [region])
 
+    useEffect(() => {
+        if(!drive_start)
+        {
+            setTrajectory(null)
+        }
+    } , [drive_start])
+
+    useEffect(() => {
+        if(modal_closed)
+        {
+            setSelectedPharmacy(null)
+            if (!drive_start) {
+                setTrajectory(null)
+            }
+        }
+    } , [modal_closed])
+
     const changeDrivingMode = (mode) => {
         if (mode !== driving_mode) {
             setDrivingMode(mode)
         }
     }
 
-    const user_to_pharmacy = () => {
-        let user_location = {longitude: location.coords.longitude, latitude: location.coords.latitude,}
+    const drawTrajectory = async (mode) => {
+        let user_location = {longitude: location.coords.longitude, latitude: location.coords.latitude}
 
-        let pharmacy_location = {latitude: selectedPharmacy.latitude, longitude: selectedPharmacy.longitude}
-        // let user_location = {latitude: pharmacies[active][0].latitude, longitude: pharmacies[active][0].longitude}
-
-        // console.log(pharmacy_location)
-
-        setTrajectory([user_location, pharmacy_location])
+        if(mode === 'user_to_pharmacy'){
+            let pharmacy_location = {latitude: selectedPharmacy.latitude, longitude: selectedPharmacy.longitude}
+            setTrajectory([user_location, pharmacy_location])
+        }else{
+            try {
+                let response = await fetch(`${Api}pharmacies/nearest/?lat=${region.latitude}&lng=${region.longitude}`)
+                
+                const json = await response.json()
+                setSelectedPharmacy(json.data[active][json.data[active].length - 1])
+                setTrajectory([user_location, ...json.data[active]])
+                modalizeRef.current.open()
+    
+            } catch (error) {
+                console.error(error);
+            }
+        }
     }
 
     const is_open = () => {
@@ -197,7 +231,13 @@ const home = (props) => {
                         ref={ref => { markers[index] = ref }}
                         onCalloutPress={() => {onOpen(pharmacy), markers[index].hideCallout()}}
                     >
-                        <Image source={require('../assets/icons/marker.png')} style={{width: 30, height: 30}} />
+                            { (trajectory && (trajectory[trajectory.length - 1].longitude === pharmacy.longitude && trajectory[trajectory.length - 1].latitude === pharmacy.latitude))
+                                ? 
+                                <Image source={require('../assets/icons/icon-flag-end.png')} style={{width: 30, height: 30}} />
+                                :
+                                <Image source={require('../assets/icons/marker.png')} style={{width: 30, height: 30}} />
+                            }
+
                     </Marker>
                 ))}
 
@@ -213,51 +253,38 @@ const home = (props) => {
                             <Image source={require('../assets/icons/icon-flag-start.png')} style={{width: 40, height: 40}} />
                         </Marker>
                     }
-
-                    {/* marker end */}
-                    { trajectory && 
-                        <Marker
-                            // key={index}
-                            coordinate={trajectory[trajectory.length - 1]}
-                            // title={pharmacy.name}
-                            // ref={ref => { markers[index] = ref }}
-                            // onCalloutPress={() => {onOpen(pharmacy), markers[index].hideCallout()}}
-                        >
-                            <Image source={require('../assets/icons/icon-flag-end.png')} style={{width: 40, height: 40}} />
-                        </Marker>
-                    }
-
                 {
-                    // trajectory && 
-                    // <MapViewDirections 
-                    //     lineDashPattern={[0, 0]}
-                    //     mode={driving_mode}
-                    //     origin={trajectory[0]}
-                    //     destination={trajectory[trajectory.length - 1]}
-                    //     optimizeWaypoints={true}
-                    //     apikey={GOOGLE_API_KEY} // insert your API Key here
-                    //     strokeWidth={4}
-                    //     strokeColor="#00897E"
-                    //     onReady={result => {
-                    //         // console.log(result)
-                    //         setDirectionInfo({
-                    //             distance: result.distance,
-                    //             duration: result.duration,
-                    // })
-                    //         // console.log(`Distance: ${result.distance} km`)
-                    //         // console.log(`Duration: ${result.duration} min.`)
+                    trajectory && 
+                    <MapViewDirections 
+                        lineDashPattern={[0, 0]}
+                        mode={driving_mode}
+                        origin={trajectory[0]}
+                        destination={trajectory[trajectory.length - 1]}
+                        waypoints={trajectory.slice(1, trajectory.length - 1)}
+                        optimizeWaypoints={true}
+                        apikey={GOOGLE_API_KEY} // insert your API Key here
+                        strokeWidth={4}
+                        strokeColor="#00897E"
+                        onReady={result => {
+                            // console.log(result)
+                            setDirectionInfo({
+                                distance: result.distance,
+                                duration: result.duration,
+                            })
+                            // console.log(`Distance: ${result.distance} km`)
+                            // console.log(`Duration: ${result.duration} min.`)
                     
-                    //         // map_view.fitToCoordinates(result.coordinates, {
-                    //         //   edgePadding: {
-                    //         //     right: (width / 20),
-                    //         //     bottom: (height / 20),
-                    //         //     left: (width / 20),
-                    //         //     top: (height / 20),
-                    //         //   }
-                    //         // });
-                    //     }}
+                            // map_view.fitToCoordinates(result.coordinates, {
+                            //   edgePadding: {
+                            //     right: (width / 20),
+                            //     bottom: (height / 20),
+                            //     left: (width / 20),
+                            //     top: (height / 20),
+                            //   }
+                            // });
+                        }}
 
-                    // />
+                    />
                 }
             </MapView>
 
@@ -353,16 +380,11 @@ const home = (props) => {
                 overlayStyle={styles.overlay_background}
                 modalStyle={styles.modal_style}
                 rootStyle={{elevation: 4}}
-                onClose={() => {
-                    setSelectedPharmacy(null)
-                    // console.log('close')
-                }}
                 onClosed={() => {
-                    console.log(drive_start)
-                    if (!drive_start) {
-                        setTrajectory(null)
-                        console.log('setTrajectory')
-                    }
+                    setModalClosed(true)
+                }}
+                onOpened={() => {
+                    setModalClosed(false)
                 }}
             >
                 <SafeAreaView style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom:'6%'}}>
@@ -380,7 +402,7 @@ const home = (props) => {
 
                 <SafeAreaView style={{ width: '100%', paddingVertical: 1, display: 'flex', flexDirection: 'row', marginBottom: 11 }}>
                     { !trajectory ? 
-                        <TouchableOpacity onPress={() => user_to_pharmacy()} style={[styles.badge_button, { marginRight: 10, backgroundColor: '#00897E', }]}>
+                        <TouchableOpacity onPress={() => drawTrajectory('user_to_pharmacy')} style={[styles.badge_button, { marginRight: 10, backgroundColor: '#00897E', }]}>
                             <MaterialCommunityIcons name="directions" size={20} color="#fff" style={{alignSelf: 'center'}} />
                             <Text style={{marginLeft: 6 ,alignSelf: 'center', fontSize: 16 ,fontFamily: 'Mulish', textAlign: 'center', color: 'white'}}>Itinéraire</Text>
                         </TouchableOpacity>
@@ -456,7 +478,7 @@ const home = (props) => {
                             />
                         </TouchableOpacity>
 
-                        <TouchableOpacity onPress={() => { }} style={[styles.floating_button, {backgroundColor: '#00897E', marginBottom: 10 }]} activeOpacity={0.8}>
+                        <TouchableOpacity onPress={() => { drawTrajectory('path_to_all_pharmacies') }} style={[styles.floating_button, {backgroundColor: '#00897E', marginBottom: 10 }]} activeOpacity={0.8}>
                             <FontAwesome5 name="route" size={24} color="#FFF" />
                         </TouchableOpacity>
                     </View>
