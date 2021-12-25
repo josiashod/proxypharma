@@ -173,8 +173,9 @@ const home = (props) => {
                 let response = await fetch(`${Api}pharmacies/nearest/?lat=${region.latitude}&lng=${region.longitude}`)
                 
                 const json = await response.json()
-                setSelectedPharmacy(json.data[active][json.data[active].length - 1])
+                // setSelectedPharmacy(json.data[active][json.data[active].length - 1])
                 setTrajectory([user_location, ...json.data[active]])
+                setDriveStart(true)
                 modalizeRef.current.open()
     
             } catch (error) {
