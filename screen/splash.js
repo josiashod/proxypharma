@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react'
-import { View, Text, Image, Appearance } from 'react-native'
+import { View, Image, Appearance } from 'react-native'
 import { useDispatch } from 'react-redux'
 import logo from '../assets/logo.png'
 

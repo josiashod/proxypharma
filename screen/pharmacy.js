@@ -1,31 +1,39 @@
 import React, {useEffect, useState} from 'react'
-import { ActivityIndicator, View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Dimensions, SafeAreaView, Image } from 'react-native'
+import { ActivityIndicator, View, Text, StyleSheet, TouchableOpacity, FlatList, Dimensions, Image } from 'react-native'
 import { AntDesign, MaterialCommunityIcons, Ionicons } from '@expo/vector-icons'
+import { SearchBar } from 'react-native-elements';
 import { Api } from '../api/lienapi'
 import * as Location from 'expo-location';
+import { useSelector, useDispatch } from 'react-redux'
 
 export default function Pharmacy(props) {
+    const dispatch = useDispatch()
+
     const [search, setSearch] = useState('')
     const [drugs, setDrugs] = useState([])
     const [loading, setLoading] = useState(false)
-    const [loadingMore, setLoadingMore] = useState(false)
+    const [loading_more, setLoadingMore] = useState(false)
     const [nextLink, setNextLink] = useState(null)
 
-    // const [location, setLocation] = useState([])
+    const [location, setLocation] = useState([])
 
-    const pharmacy = props.route.params.pharmacy
+    const selected_pharmacy = useSelector(state => state.appReducer.selected_pharmacy);
 
-    // useEffect(() => {
-    //     (async () => {
-    //         let location = await Location.getCurrentPositionAsync({});
-    //         setLocation({longitude: location.coords.longitude, latitude: location.coords.latitude})
-    //     })();
-    // }, []);
+    // const modal_ref = useSelector(state => state.appReducer.modal_ref);
+
+    // const pharmacy = props.route.params.pharmacy
+
+    useEffect(() => {
+        (async () => {
+            let location = await Location.getCurrentPositionAsync({});
+            setLocation({longitude: location.coords.longitude, latitude: location.coords.latitude})
+        })();
+    }, []);
 
     const getDrugs = async() => {
         setLoading(true)
         try {
-            let response = await fetch(`${Api}pharmacies/${pharmacy.id}/drug/?q=${search}`)
+            let response = await fetch(`${Api}pharmacies/${selected_pharmacy.id}/drug/?q=${search}`)
             
             const json = await response.json()
             setDrugs(json.results)
@@ -66,93 +74,103 @@ export default function Pharmacy(props) {
 
     const is_open = () => {
         let current_hour = (new Date()).getHours();
-        if (current_hour <= 22 || pharmacy.on_call)
+        if (current_hour <= 22 || selected_pharmacy.on_call)
             return true
         return false
     }
 
     return (
         <View style={styles.container}>
-            <View style={{ borderBottomColor: '#DDDEE1', borderBottomWidth: 1, borderStyle: 'solid', backgroundColor: '#fff', paddingTop: (Dimensions.get('window').height / 16), paddingBottom: 8 }}>
-                <SafeAreaView style={styles.inputContainer}>
+            <View style={{ borderBottomColor: '#DDDEE1', borderBottomWidth: 1, borderStyle: 'solid', backgroundColor: '#fff', paddingTop: (Dimensions.get('window').height * 0.058), paddingBottom: 8 }}>
+                <View style={styles.inputContainer}>
                     <TouchableOpacity onPress={() => props.navigation.goBack() } activeOpacity={0.9}>
                         <AntDesign name="arrowleft" size={24} color="#3C4043" />
                     </TouchableOpacity>
-                    <TextInput 
-                        style={styles.input}
+                    <SearchBar 
+                        containerStyle={styles.input}
                         placeholder="Recherche un médicament"
                         value={search}
                         selectionColor="#00897E"
+                        searchIcon={false}
                         onChangeText={(text) => setSearch(text)}
+                        inputContainerStyle={{backgroundColor: 'transparent'}}
+                        inputStyle={{fontFamily: 'Mulish', fontSize: 16, color: '#3C4043'}}
                     />
-                </SafeAreaView>
+                </View>
             </View>
 
             <View style={{ marginHorizontal: 10, marginVertical: 10 }}>
-                <SafeAreaView style={{ flexDirection: 'row', marginBottom: 25 }} >
+                <View style={{ flexDirection: 'row', marginBottom: 25 }} >
                     <Image 
-                        source={{ uri: pharmacy.image}}
+                        source={{ uri: selected_pharmacy.image}}
                         style={{ width: 140, height: 140, marginRight: 5, borderRadius: 6 }} 
                     />
-                    <SafeAreaView style={{flexShrink: 1, width: '100%', justifyContent: 'space-between'}}>
-                        <SafeAreaView>
-                            <Text style={{ fontWeight: '400', fontFamily: 'Mulish', fontSize: 18, flexShrink: 0, marginBottom: 5 }}> { pharmacy.name } </Text>
-                            <SafeAreaView style={{ flexDirection: 'row', marginBottom: 5 }}>
-                                <Text style={{fontSize: 16, color: '#A7ABAD', marginRight: 50 }}> { pharmacy.distance.toPrecision(2) } km</Text>
+                    <View style={{flexShrink: 1, width: '100%', justifyContent: 'space-between'}}>
+                        <View>
+                            <Text style={{ fontWeight: '400', fontFamily: 'Mulish', fontSize: 18, flexShrink: 0, marginBottom: 5 }}> { selected_pharmacy.name } </Text>
+                            <View style={{ flexDirection: 'row', marginBottom: 5 }}>
+                                <Text style={{fontSize: 16, color: '#A7ABAD', marginRight: 50 }}> { selected_pharmacy.distance.toPrecision(2) } km</Text>
                                 <Text style={[{fontSize: 16}, is_open ? {color: '#00897E'} : {color: '#DA645C'} ]}>{ is_open ? 'Ouvert' : 'Fermé'}</Text>
-                            </SafeAreaView>
+                            </View>
                             <Text style={{fontSize: 16, color: '#A7ABAD'}}> +229 99 08 13 82</Text>
-                        </SafeAreaView>
+                        </View>
 
-                        <TouchableOpacity style={[styles.badge_button, { backgroundColor: '#00897E' }]}>
+                        <TouchableOpacity 
+                            onPress={() => {
+                                dispatch({type: 'setModal', value: true})
+                                dispatch({type: 'setWaypoints', value: [location, selected_pharmacy]})
+                                props.navigation.navigate('Home')
+                            }}
+                            style={[styles.badge_button, { backgroundColor: '#00897E' }]}
+                        >
                             <MaterialCommunityIcons name="directions" size={20} color="#fff" />
                             <Text style={{marginLeft: 6 ,alignSelf: 'center',fontFamily: 'Mulish', fontSize: 16, textAlign: 'center', color: 'white'}}>Itinéraire</Text>
                         </TouchableOpacity>
-                    </SafeAreaView>
-                </SafeAreaView>
+                    </View>
+                </View>
                 { (search.length > 0) && (
-                    (drugs.length > 0) ? <SafeAreaView style={{ flexDirection: 'column' }} >
+                    (drugs.length > 0) ? <View style={{ flexDirection: 'column' }} >
                         <Text style={{ fontFamily: 'Mulish', fontSize: 20, marginBottom: 10 }}> Résultats </Text>
                         <View style={styles.listContainer}>
                             <FlatList
                                 data={drugs}
                                 keyExtractor={(item) => item.id}
                                 renderItem={({item}) => (
-                                    <SafeAreaView style={styles.itemContainer} activeOpacity={0.4}>
-                                        <SafeAreaView style={{ marginRight: 15, alignSelf: 'center' }}>
+                                    <View style={styles.itemContainer}>
+                                        <View style={{ marginRight: 15, alignSelf: 'center' }}>
                                             <Image
                                                 source={require('../assets/icons/drug-icon.png')}
                                                 fadeDuration={0}
                                                 style={{ width: 40, height: 40 }}
                                             />
-                                        </SafeAreaView>
-                                        <SafeAreaView style={styles.itemleft}>
+                                        </View>
+                                        <View style={styles.itemleft}>
                                             <Text style={{ fontSize: 18, fontFamily: 'Mulish-SemiBold' }}>{item.name + " ( " + item.type + ' )'}</Text>
-                                            <SafeAreaView style={{ flexDirection: 'row' }} >
+                                            <View style={{ flexDirection: 'row' }} >
                                                 <Text style={{fontSize: 15, marginRight: 20, color: '#A7ABAD'}}> { item.dose.replace(/ /g,'') } </Text>
                                                 <Text style={{fontSize: 15, color: '#00897E'}}> En stock </Text>
-                                            </SafeAreaView>
-                                        </SafeAreaView>
-                                    </SafeAreaView>
+                                            </View>
+                                        </View>
+                                    </View>
                                 )}
                                 onEndReached={loadMoreData}
                                 onEndReachedThreshold={0.5}
-                                ListFooterComponent={ loadingMore ? <ActivityIndicator size="large" color="#00897E" style={{ marginVertical: 10 }} /> : null}
-                                />
+                                ListFooterComponent={ loading_more ? <ActivityIndicator size="large" color="#00897E" style={{ marginVertical: 10 }} /> : null}
+                            />
                         </View>
-                    </SafeAreaView> : loading ? 
+                    </View> : loading ? 
                         <ActivityIndicator size="large" color="#00897E"/> 
 
                         :
                         
-                        <SafeAreaView style={{ justifyContent: 'center', alignContent: 'center' }} >
+                        <View style={{ justifyContent: 'center', alignContent: 'center' }} >
                             <Image
                                 source={require('../assets/icons/indisponible.png')}
                                 fadeDuration={0}
                                 resizeMode="contain"
                                 style={{ width: 200, height: 200, alignSelf: 'center', marginTop: 20 }}
                             />
-                        </SafeAreaView>
+                        </View>
                 )}
             </View>
         </View>
@@ -185,7 +203,9 @@ const styles = StyleSheet.create({
         fontFamily: 'Mulish',
         fontSize: 16,
         fontWeight: '100',
-        color: '#202125'
+        color: '#202125',
+        backgroundColor: 'transparent',
+        borderColor: 'transparent',
     },
     listContainer: {
         height: '76%'

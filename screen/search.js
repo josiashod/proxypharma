@@ -1,16 +1,22 @@
-import React, {useEffect, useState} from 'react'
-import { ActivityIndicator, View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Dimensions, SafeAreaView, Image } from 'react-native'
+import React, {useEffect, useState, useRef} from 'react'
+import { ActivityIndicator, View, Text, StyleSheet, TouchableOpacity, FlatList, Dimensions, Image } from 'react-native'
 import { AntDesign, Ionicons, Feather } from '@expo/vector-icons'
+import { SearchBar } from 'react-native-elements';
 import { Api } from '../api/lienapi'
 import * as Location from 'expo-location';
+import { useDispatch } from 'react-redux'
 
 export default function Search(props) {
+    const dispatch = useDispatch()
+
     const [search, setSearch] = useState('')
     const [location, setLocation] = useState([])
     const [pharmacies, setPharmacies] = useState([])
     const [loading, setLoading] = useState(false)
-    const [loadingMore, setLoadingMore] = useState(false)
+    const [loading_more, setLoadingMore] = useState(false)
     const [nextLink, setNextLink] = useState(null)
+
+    let search_input = useRef(null)
 
     const getPharmacies = async() => {
         setLoading(true)
@@ -33,6 +39,7 @@ export default function Search(props) {
             let location = await Location.getCurrentPositionAsync({});
             setLocation({longitude: location.coords.longitude, latitude: location.coords.latitude})
         })();
+        search_input.focus()
     }, []);
 
     useEffect(() => {
@@ -70,30 +77,40 @@ export default function Search(props) {
 
     return (
         <View style={styles.container}>
-            <View style={{ borderBottomColor: '#DDDEE1', borderBottomWidth: 1, borderStyle: 'solid', backgroundColor: '#fff', paddingTop: (Dimensions.get('window').height / 16), paddingBottom: 8 }}>
-                <SafeAreaView style={styles.inputContainer}>
+            <View style={{ borderBottomColor: '#DDDEE1', borderBottomWidth: 1, borderStyle: 'solid', backgroundColor: '#fff', paddingTop: (Dimensions.get('window').height * 0.058), paddingBottom: 8 }}>
+                <View style={styles.inputContainer}>
                     <TouchableOpacity onPress={() => props.navigation.goBack() } activeOpacity={0.9}>
                         <AntDesign name="arrowleft" size={24} color="#3C4043" />
                     </TouchableOpacity>
-                    <TextInput 
-                        style={styles.input}
-                        placeholder="Rechercher une pharmacie"
-                        autoFocus={true}
+                    <SearchBar 
+                        ref={(search) => search_input = search}
+                        containerStyle={styles.input}
+                        placeholder="Recherche une pharmacie"
                         value={search}
                         selectionColor="#00897E"
+                        searchIcon={false}
                         onChangeText={(text) => setSearch(text)}
+                        inputContainerStyle={{backgroundColor: 'transparent'}}
+                        inputStyle={{fontFamily: 'Mulish', fontSize: 16, color: '#3C4043'}}
                     />
-                </SafeAreaView>
+                </View>
             </View>
             <View style={styles.listContainer}>
                 { (search.length > 0) && (
                     pharmacies.length > 0 ?
                     <FlatList
                         data={pharmacies}
+                        keyboardShouldPersistTaps="always"
                         keyExtractor={(item) => item.id.toString()}
                         renderItem={({item}) => (
-                            <TouchableOpacity onPress={() => { props.navigation.navigate('Pharmacy', { 'pharmacy': item }) }} style={styles.itemContainer} activeOpacity={0.4}>
-                                <SafeAreaView style={{ marginRight: 15, alignSelf: 'center' }}>
+                            <TouchableOpacity 
+                                onPress={() => { 
+                                    dispatch({type: 'setSelectedPharmacy', value: item})
+                                    props.navigation.navigate('Pharmacy') }
+                                } 
+                                style={styles.itemContainer} activeOpacity={0.4}
+                            >
+                                <View style={{ marginRight: 15, alignSelf: 'center' }}>
                                     <Ionicons 
                                         name="location-outline" 
                                         size={24} 
@@ -106,31 +123,31 @@ export default function Search(props) {
                                             borderRadius: 20 
                                         }}/>
                                     <Text style={{fontSize: 13, color: '#A7ABAD'}}> {item.distance.toPrecision(2)} km</Text>
-                                </SafeAreaView>
-                                <SafeAreaView style={styles.itemleft}>
-                                    <SafeAreaView>
+                                </View>
+                                <View style={styles.itemleft}>
+                                    <View>
                                         <Text style={{ fontSize: 18 }}>{item.name}</Text>
                                         <Text style={[{fontSize: 15}, is_open(item) ? {color: '#00897E'} : {color: '#DA645C'} ]}>{ is_open(item) ? 'Ouvert' : 'Fermé'}</Text>
-                                    </SafeAreaView>
+                                    </View>
                                     <Feather name="arrow-up-left" size={24} color="#3E4245" style={{ alignSelf: 'center' }} />
-                                </SafeAreaView>
+                                </View>
                             </TouchableOpacity>
                         )}
                         onEndReached={loadMoreData}
                         onEndReachedThreshold={0.5}
-                        ListFooterComponent={ loadingMore ? <ActivityIndicator size="large" color="#00897E" style={{ marginVertical: 10 }} /> : null}
+                        ListFooterComponent={ loading_more ? <ActivityIndicator size="large" color="#00897E" style={{ marginVertical: 10 }} /> : null}
                     /> : loading ? 
                         <ActivityIndicator size="large" color="#00897E"/> 
                     :
                         
-                        <SafeAreaView style={{ justifyContent: 'center', alignContent: 'center' }} >
+                        <View style={{ justifyContent: 'center', alignContent: 'center' }} >
                             <Image
                                 source={require('../assets/icons/indisponible.png')}
                                 fadeDuration={0}
                                 resizeMode="contain"
                                 style={{ width: 200, height: 200, alignSelf: 'center', marginTop: 20 }}
                             />
-                        </SafeAreaView>
+                        </View>
                 )}
             </View>
         </View>
@@ -163,7 +180,9 @@ const styles = StyleSheet.create({
         fontFamily: 'Mulish',
         fontSize: 16,
         fontWeight: '100',
-        color: '#202125'
+        color: '#202125',
+        backgroundColor: 'transparent',
+        borderColor: 'transparent',
     },
     listContainer: {
         flex: 1,

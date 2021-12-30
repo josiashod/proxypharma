@@ -12,6 +12,7 @@ import parameterReducer from './reducers/parameterReducer'
 
 //import saga
 import {rootSaga} from './sagas/indexSaga'
+import appReducer from './reducers/appReducer'
 
 
 
@@ -31,6 +32,20 @@ const configureStore = () => {
         blacklist: ['splash']
     }
 
+    // Non-secure (ExpoFileSystemStorage) storage
+    const pharmacy_persist_config = {
+        key: 'pharmacyapp',
+        storage: ExpoFileSystemStorage,
+        blacklist: [
+            'pharmacies',
+            'waypoints',
+            'selected_pharmacy',
+            'active_tab',
+            'moving',
+            'modal',
+        ]
+    }
+
 
 
     const saga_middleware = createSagaMiddleware();
@@ -38,7 +53,8 @@ const configureStore = () => {
     const store = createStore(
         combineReducers({
             parameterReducer: persistReducer(root_persist_config, parameterReducer),
-            authReducer: persistReducer(secure_persist_config, authReducer)
+            authReducer: persistReducer(secure_persist_config, authReducer),
+            appReducer: persistReducer(pharmacy_persist_config, appReducer)
         }),  
         applyMiddleware(saga_middleware)
     );

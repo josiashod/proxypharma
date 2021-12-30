@@ -1,22 +1,23 @@
-import React, {useEffect} from 'react'
-import { View, Text, Image, TouchableOpacity, Dimensions } from 'react-native'
+import React from 'react'
+// import { View, Text, Image, TouchableOpacity, Dimensions } from 'react-native'
 
 import { NavigationContainer } from '@react-navigation/native'
 import { createStackNavigator } from '@react-navigation/stack'
 
-import {useDispatch, useSelector, batch } from 'react-redux'
+import { useSelector } from 'react-redux'
 
-import { Ionicons, AntDesign, FontAwesome, Octicons } from '@expo/vector-icons'
+// import { Ionicons, AntDesign, FontAwesome, Octicons } from '@expo/vector-icons'
 
 
-import Onbording from '../screen/onbording'
-import Login from '../screen/auth/login'
-import Blank from '../screen/blank'
-import Recoverymdp from '../screen/auth/recoverymdp'
+// import Onbording from '../screen/onbording'
+// import Login from '../screen/auth/login'
+// import Blank from '../screen/blank'
+// import Recoverymdp from '../screen/auth/recoverymdp'
 
 import Home from '../screen/home'
 import Search from '../screen/search'
 import Pharmacy from '../screen/pharmacy'
+import Prescription from '../screen/prescription'
 import Splash from '../screen/splash'
 
 // const Stack = createStackNavigator({
@@ -29,33 +30,33 @@ import Splash from '../screen/splash'
 // )
 const Stack = createStackNavigator()
 
-const StackConnexion = () => {
+// const StackConnexion = () => {
 
-    return (
+//     return (
 
 
-        <Stack.Navigator>
+//         <Stack.Navigator>
 
-            <Stack.Screen 
-                name="Login" component={Login}
-            />
+//             <Stack.Screen 
+//                 name="Login" component={Login}
+//             />
 
-            <Stack.Screen 
-                name="Signup" component={Signup}
-            />
+//             <Stack.Screen 
+//                 name="Signup" component={Signup}
+//             />
 
             
-            <Stack.Screen 
-                name="MdpForget" component={Recoverymdp}
-            />
+//             <Stack.Screen 
+//                 name="MdpForget" component={Recoverymdp}
+//             />
 
 
-        </Stack.Navigator>
+//         </Stack.Navigator>
 
 
-    )
+//     )
 
-}
+// }
 
 const StackSplash = () => {
     
@@ -73,7 +74,6 @@ const StackMain = () => {
 
     return (
 
-
         <Stack.Navigator screenOptions={{ headerShown: false }}>
 
             <Stack.Screen 
@@ -88,6 +88,10 @@ const StackMain = () => {
                 name="Pharmacy" component={Pharmacy}
             />
 
+            <Stack.Screen
+                name="Prescription" component={Prescription}
+            />
+
         </Stack.Navigator>
 
 
@@ -98,7 +102,7 @@ const StackMain = () => {
 
 const navigation = () => {
 
-    const first_use = useSelector(state => state.parameterReducer.first_use);
+    // const first_use = useSelector(state => state.parameterReducer.first_use);
     const splash = useSelector(state => state.parameterReducer.splash);
     // const connected = useSelector(state => state.parameterReducer.connected);
 
