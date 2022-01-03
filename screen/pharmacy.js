@@ -15,19 +15,29 @@ export default function Pharmacy(props) {
     const [loading_more, setLoadingMore] = useState(false)
     const [nextLink, setNextLink] = useState(null)
 
-    const [location, setLocation] = useState([])
+    const [location, setLocation] = useState(null)
 
     const selected_pharmacy = useSelector(state => state.appReducer.selected_pharmacy);
-
-    // const modal_ref = useSelector(state => state.appReducer.modal_ref);
-
-    // const pharmacy = props.route.params.pharmacy
+    const pharmacies = useSelector(state => state.appReducer.pharmacies);
+    const active_tab = useSelector(state => state.appReducer.active_tab);
 
     useEffect(() => {
         (async () => {
             let location = await Location.getCurrentPositionAsync({});
             setLocation({longitude: location.coords.longitude, latitude: location.coords.latitude})
         })();
+
+        let selected_pharmacy_is_in = pharmacies[active_tab].filter(pharmacy => {
+            return pharmacy.id === selected_pharmacy.id
+        })
+
+        if (selected_pharmacy_is_in.length === 0) {
+            // console.log([...pharmacies[active_tab], selected_pharmacy])
+            dispatch({type: 'setPharmacies', value: [...pharmacies[active_tab], selected_pharmacy]})
+        }
+
+        // console.log(pharmacies[active_tab][pharmacies[active_tab].length - 1])
+
     }, []);
 
     const getDrugs = async() => {

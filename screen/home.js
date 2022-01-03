@@ -144,7 +144,17 @@ const home = (props) => {
                 dispatch({type: 'setActiveTab', value:'on_call_pharmacies'})
             }
         })();
+
     }, []);
+
+    useEffect(() => {
+        console.log('executing')
+    } , [])
+
+    // if (modal) {
+    //     modalizeRef.current.open();
+    //     dispatch({type: 'setModal', value: false})
+    // }
 
     useEffect(() => {
         if(region != null)
@@ -173,11 +183,6 @@ const home = (props) => {
         if (mode !== driving_mode) {
             setDrivingMode(mode)
         }
-    }
-
-    if (modal) {
-        modalizeRef.current.open();
-        dispatch({type: 'setModal', value: false})
     }
 
     const drawTrajectory = async (mode) => {
@@ -263,7 +268,7 @@ const home = (props) => {
                             }
                         }}
                     >
-                            { ((waypoints.length > 0) && (waypoints[waypoints.length - 1].longitude === pharmacy.longitude && waypoints[waypoints.length - 1].latitude === pharmacy.latitude))
+                            { ((waypoints.length > 0) && (waypoints[waypoints.length - 1] === pharmacy))
                                 ? 
                                 <Image source={require('../assets/icons/icon-flag-end.png')} style={{width: 30, height: 30}} />
                                 :
@@ -285,7 +290,7 @@ const home = (props) => {
                             <Image source={require('../assets/icons/icon-flag-start.png')} style={{width: 40, height: 40}} />
                         </Marker>
                     }
-                {/* {
+                {
                     (waypoints.length > 0) && 
                     <MapViewDirections 
                         lineDashPattern={[0, 0]}
@@ -317,7 +322,7 @@ const home = (props) => {
                         }}
 
                     />
-                } */}
+                }
             </MapView>
 
             {/* header input */}
@@ -379,7 +384,7 @@ const home = (props) => {
                     setModalClosed(false)
                 }}
             >
-                <View style={{marginBottom:'6%'}}>
+                <View style={{marginBottom:'4%'}}>
                     { (typeof(selected_pharmacy) === 'boolean') 
                         ? (selected_pharmacy ? 
                             <Text style={{fontFamily: 'Mulish', fontSize: 20, color: 'black', marginBottom: 1, flexShrink: 0}}> Parcourir les pharmacies les plus proches</Text>
@@ -402,7 +407,7 @@ const home = (props) => {
                     }
                 </View>
 
-                <View style={{ width: '100%', paddingVertical: 1, display: 'flex', flexDirection: 'row', marginBottom: 11 }}>
+                <View style={{ width: '100%', paddingVertical: 1, display: 'flex', flexDirection: 'row', marginBottom: 8 }}>
                     { (waypoints.length === 0) ? 
                         <TouchableOpacity onPress={() => drawTrajectory('user_to_pharmacy')} style={[styles.badge_button, { marginRight: 10, backgroundColor: '#00897E', }]}>
                             <MaterialCommunityIcons name="directions" size={20} color="#fff" style={{alignSelf: 'center'}} />
@@ -420,7 +425,7 @@ const home = (props) => {
                             <Text style={{marginLeft: 6 ,alignSelf: 'center', fontSize: 16 ,fontFamily: 'Mulish', textAlign: 'center', color: 'white'}}>Démarrer</Text>
                         </TouchableOpacity>
                     }
-                    {(typeof(selected_pharmacy) !== 'boolean') && 
+                    {(typeof(selected_pharmacy) !== 'boolean' && waypoints.length === 0) && 
                         <TouchableOpacity onPress={() => { props.navigation.navigate('Pharmacy') }} style={[styles.badge_button, { marginRight: 10, }]}>
                             <Feather name="info" size={20} color="#00897E" style={{alignSelf: 'center'}} />
                             <Text style={{ marginLeft: 6 ,alignSelf: 'center', fontSize: 16 ,fontFamily: 'Mulish', textAlign: 'center', color: '#00897E'}}>Consulter</Text>

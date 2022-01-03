@@ -125,7 +125,7 @@ export default function Search(props) {
                                     <Text style={{fontSize: 13, color: '#A7ABAD'}}> {item.distance.toPrecision(2)} km</Text>
                                 </View>
                                 <View style={styles.itemleft}>
-                                    <View>
+                                    <View style={{flexShrink: 1}}>
                                         <Text style={{ fontSize: 18 }}>{item.name}</Text>
                                         <Text style={[{fontSize: 15}, is_open(item) ? {color: '#00897E'} : {color: '#DA645C'} ]}>{ is_open(item) ? 'Ouvert' : 'Fermé'}</Text>
                                     </View>
@@ -204,6 +204,7 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         height: '100%',
         paddingBottom: 14,
+        flexShrink: 1,
     },
     separator: {
         height: 0.5,
