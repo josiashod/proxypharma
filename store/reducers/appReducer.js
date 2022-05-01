@@ -23,7 +23,7 @@ function appReducer(state = pharmacy_state, action) {
     case 'setPhamacies':
 
       nextState = produce(state, prev_state => {
-        prev_state.pharmacies = action.value
+        prev_state.pharmacies = Object.assign({}, action.value)
       })
 
       return nextState || state;

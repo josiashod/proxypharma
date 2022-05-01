@@ -147,14 +147,10 @@ const home = (props) => {
 
     }, []);
 
-    useEffect(() => {
-        console.log('executing')
-    } , [])
-
-    // if (modal) {
-    //     modalizeRef.current.open();
-    //     dispatch({type: 'setModal', value: false})
-    // }
+    if (modal) {
+        modalizeRef.current.open();
+        dispatch({type: 'setModal', value: false})
+    }
 
     useEffect(() => {
         if(region != null)
@@ -172,6 +168,17 @@ const home = (props) => {
     useEffect(() => {
         if(modal_closed)
         {
+            // if(pharmacies[active_tab].filter(pharmacy => {return pharmacy.id === selected_pharmacy.id}).length === 0){
+            //     let new_pharmacies = Object.assign({}, pharmacies)
+            //     new_pharmacies[active_tab] = [...pharmacies[active_tab], selected_pharmacy]
+
+            //     // console.log(new_pharmacies[active_tab][new_pharmacies[active_tab].length - 1])
+                
+            //     dispatch({type: 'setPharmacies', value: new_pharmacies})
+            // }
+
+            // console.log(pharmacies[active_tab][pharmacies[active_tab].length - 1])
+
             dispatch({type: 'setSelectedPharmacy', value: null})
             if (!moving) {
                 dispatch({type: 'setWaypoints', value: []})

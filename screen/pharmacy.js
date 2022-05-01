@@ -27,17 +27,6 @@ export default function Pharmacy(props) {
             setLocation({longitude: location.coords.longitude, latitude: location.coords.latitude})
         })();
 
-        let selected_pharmacy_is_in = pharmacies[active_tab].filter(pharmacy => {
-            return pharmacy.id === selected_pharmacy.id
-        })
-
-        if (selected_pharmacy_is_in.length === 0) {
-            // console.log([...pharmacies[active_tab], selected_pharmacy])
-            dispatch({type: 'setPharmacies', value: [...pharmacies[active_tab], selected_pharmacy]})
-        }
-
-        // console.log(pharmacies[active_tab][pharmacies[active_tab].length - 1])
-
     }, []);
 
     const getDrugs = async() => {
@@ -129,7 +118,7 @@ export default function Pharmacy(props) {
                             onPress={() => {
                                 dispatch({type: 'setModal', value: true})
                                 dispatch({type: 'setWaypoints', value: [location, selected_pharmacy]})
-                                props.navigation.navigate('Home')
+                                props.navigation.popToTop()
                             }}
                             style={[styles.badge_button, { backgroundColor: '#00897E' }]}
                         >
