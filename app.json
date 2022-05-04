@@ -17,8 +17,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#FFFFFF"
+      },
+      "package": "com.proxypharm.josiashod",
+      "conifg": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDOUwKD-J_smbux5mgU_rt8uH31czYy5sQ"
+        }
       }
     },
     "web": {
