@@ -21,7 +21,7 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.proxypharm.josiashod",
-      "conifg": {
+      "config": {
         "googleMaps": {
           "apiKey": "AIzaSyDOUwKD-J_smbux5mgU_rt8uH31czYy5sQ"
         }
