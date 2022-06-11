@@ -6,7 +6,7 @@ import MapView, { Marker, Polyline } from 'react-native-maps'
 import * as Location from 'expo-location';
 import MapViewDirections from 'react-native-maps-directions'
 import { Api } from '../api/lienapi'
-const GOOGLE_API_KEY = "AIzaSyDOUwKD-J_smbux5mgU_rt8uH31czYy5sQ"
+const GOOGLE_API_KEY = "AIzaSyBkHepoElEVnbsS6895tzuHnhu2XAcWI1U"
 import { isEqual } from 'lodash'
 
 import { useSelector, useDispatch } from 'react-redux'
@@ -197,7 +197,7 @@ const home = (props) => {
 
         if(mode === 'user_to_pharmacy'){
             let pharmacy_location = {latitude: selected_pharmacy.latitude, longitude: selected_pharmacy.longitude}
-            dispatch({type: 'setWaypoints', value: [user_location, pharmacy_location]})
+            dispatch({type: 'setWaypoints', value: [user_location, selected_pharmacy]})
         }else if (mode === 'path_to_all_nearest_pharmacies') {
             setRegion({
                 latitude: location.coords.latitude,
