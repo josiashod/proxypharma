@@ -19,6 +19,7 @@ export default function App() {
 
   const [location, setLocation] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
+
   let [fontsLoaded] = useFonts({
     // Load a font `Mulish` from a static resource
     Mulish: require('./assets/fonts/Mulish-Regular.ttf'),

@@ -5,6 +5,7 @@ import { SearchBar } from 'react-native-elements';
 import { Api } from '../api/lienapi'
 import * as Location from 'expo-location';
 import { useSelector, useDispatch } from 'react-redux'
+import { distance } from './home';
 
 export default function Pharmacy(props) {
     const dispatch = useDispatch()
@@ -15,7 +16,10 @@ export default function Pharmacy(props) {
     const [loading_more, setLoadingMore] = useState(false)
     const [nextLink, setNextLink] = useState(null)
 
-    const [location, setLocation] = useState(null)
+    const [location, setLocation] = useState({
+        latitude: 0,
+        longitude: 0,
+    })
 
     const selected_pharmacy = useSelector(state => state.appReducer.selected_pharmacy);
     const pharmacies = useSelector(state => state.appReducer.pharmacies);
@@ -108,7 +112,7 @@ export default function Pharmacy(props) {
                         <View>
                             <Text style={{ fontWeight: '400', fontFamily: 'Mulish', fontSize: 18, flexShrink: 0, marginBottom: 5 }}> { selected_pharmacy.name } </Text>
                             <View style={{ flexDirection: 'row', marginBottom: 5 }}>
-                                <Text style={{fontSize: 16, color: '#A7ABAD', marginRight: 50 }}> { selected_pharmacy.distance.toPrecision(2) } km</Text>
+                                <Text style={{fontSize: 16, color: '#A7ABAD', marginRight: 50 }}> { distance(location, selected_pharmacy) } km</Text>
                                 <Text style={[{fontSize: 16}, is_open ? {color: '#00897E'} : {color: '#DA645C'} ]}>{ is_open ? 'Ouvert' : 'Fermé'}</Text>
                             </View>
                             <Text style={{fontSize: 16, color: '#A7ABAD'}}> +229 99 08 13 82</Text>

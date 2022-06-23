@@ -5,9 +5,9 @@ import { SearchBar } from 'react-native-elements';
 import { AntDesign, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
 import { Api } from '../api/lienapi'
 import * as Location from 'expo-location';
-import { isEqual } from 'lodash'
 import { Modalize } from 'react-native-modalize'
 import { useDispatch, useSelector } from 'react-redux'
+import { distance } from './home';
 
 export default function Prescription(props) {
     const dispatch = useDispatch()
@@ -15,7 +15,10 @@ export default function Prescription(props) {
     const modal = useSelector(state => state.appReducer.modal);
 
     const [search, setSearch] = useState('')
-    const [location, setLocation] = useState([])
+    const [location, setLocation] = useState({
+        latitude: 0,
+        longitude: 0,
+    })
     const [drugs, setDrugs] = useState([])
     const [selected_drugs, setSelectedDrugs] = useState([])
     const [loading, setLoading] = useState(false)
@@ -305,7 +308,7 @@ export default function Prescription(props) {
                                                 paddingVertical: 4,
                                                 borderRadius: 20 
                                             }}/>
-                                        <Text style={{fontSize: 13, color: '#A7ABAD'}}> {pharmacy.distance.toPrecision(2)} km</Text>
+                                        <Text style={{fontSize: 13, color: '#A7ABAD'}}> {distance(location, pharmacy)} km</Text>
                                     </View>
                                     <View style={styles.itemleft}>
                                         <View>

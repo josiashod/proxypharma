@@ -2,16 +2,35 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Dimensions, View, Text, TouchableOpacity, StyleSheet, Image, ToastAndroid } from 'react-native'
 import { Ionicons, Feather, MaterialCommunityIcons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons'
 import { Modalize } from 'react-native-modalize'
-import MapView, { Marker, Polyline } from 'react-native-maps'
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import * as Location from 'expo-location';
 import MapViewDirections from 'react-native-maps-directions'
 import { Api } from '../api/lienapi'
-const GOOGLE_API_KEY = "AIzaSyBkHepoElEVnbsS6895tzuHnhu2XAcWI1U"
+const GOOGLE_API_KEY = "AIzaSyCOC_mU5BNm0A0l2BVrYbFPeuJKTwNJvec"
 import { isEqual } from 'lodash'
 
 import { useSelector, useDispatch } from 'react-redux'
 
-const home = (props) => {
+export const distance = (coords1, coords2) => {
+    var R = 6371; // km 
+
+    if (typeof (Number.prototype.toRad) === 'undefined') {
+        // eslint-disable-next-line no-extend-native
+        Number.prototype.toRad = function toRad() {
+            return this * Math.PI / 180
+        }
+    }
+
+    // // has a problem with the .toRad() method below.
+    var dLat = (coords2.latitude - coords1.latitude).toRad();  
+    var dLon = (coords2.longitude - coords1.longitude).toRad();
+
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +  Math.cos(coords1.latitude.toRad()) * Math.cos(coords2.latitude.toRad()) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+    return (R * c).toPrecision(2);
+}
+
+const Home = (props) => {
     let executing = 0;
     const dispatch = useDispatch()
 
@@ -133,6 +152,9 @@ const home = (props) => {
 
             let location = await Location.getCurrentPositionAsync({});
             setLocation(location)
+            // setUserLocation({
+
+            // })
             setRegion({
                 latitude: location.coords.latitude,
                 longitude: location.coords.longitude,
@@ -238,6 +260,20 @@ const home = (props) => {
         }
     }
 
+    const formatDuration = () => {
+        const total_min = Math.floor(direction_info.duration.toPrecision(2))
+        
+        let days = Math.floor(total_min / 1440);
+        let hours = Math.floor((total_min % 1440) / 60);
+        let mins = total_min - (days * 1440) - (hours * 60);
+
+        let result = days > 0 ? ( (days < 10 ? "0" + days : days) + " d" ) : ""
+        result += hours > 0 ? ( (hours < 10 ? "0" + hours : hours) + " h" ) : ""
+        result += mins > 0 ? ( (mins < 10 ? "0" + mins : mins) + " min" ) : ""
+
+        return (result);
+    }
+
     // const setModalRef = (ref) => {
     //     if(!modal && executing === 0)
     //         dispatch({type: 'setModalRef', value: ref})
@@ -245,7 +281,8 @@ const home = (props) => {
 
     return (
         <View style={styles.container/*{flex: 1, paddingTop: 52, backgroundColor:"cyan", paddingLeft: 15, paddingRight: 15,}*/}>
-            <MapView 
+            <MapView
+                provider={PROVIDER_GOOGLE}
                 style={styles.map}
                 showsUserLocation={true}
                 followUserLocation={true}
@@ -402,7 +439,7 @@ const home = (props) => {
                         <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                             <View style={{flexShrink: 1}}>
                                 <Text style={{fontFamily: 'Mulish', fontSize: 20, color: 'black', marginBottom: 1, flexShrink: 0}}>{selected_pharmacy ? selected_pharmacy.name : ""}</Text>
-                                <Text style={{fontSize: 16, color: '#A7ABAD'}}> {selected_pharmacy ? selected_pharmacy.distance.toPrecision(2) : ""} km</Text>
+                                <Text style={{fontSize: 16, color: '#A7ABAD'}}> {selected_pharmacy ? distance(location.coords , selected_pharmacy) : ""} km</Text>
                                 
                                 <View style={{ flexDirection: 'row' }}>
                                     { selected_pharmacy && selected_pharmacy.phone && <Text style={{fontSize: 16, color: '#A7ABAD', marginRight: 10}}>Tel : {selected_pharmacy.phone}</Text> }
@@ -460,12 +497,12 @@ const home = (props) => {
                     <View style={{ flexDirection: 'row', marginBottom: 6, justifyContent: 'space-around' }} >
                         <TouchableOpacity onPress={() => changeDrivingMode('DRIVING') } style={[{ flexDirection: 'row', borderRadius: 40, paddingHorizontal: 10, paddingVertical: 4 }, driving_mode === 'DRIVING' ? { backgroundColor: '#00897E25' } : { color: '#3C4043' }]}>
                             <MaterialIcons name="directions-car" size={20} style={[ driving_mode === 'DRIVING' ? { color: '#00897E' } : { color: '#3C4043' } ]} />
-                            { driving_mode === 'DRIVING' && <Text style={{  fontFamily: 'Mulish', fontSize: 14, alignSelf: 'center', marginLeft: 6, color: '#00897E'  }} >{ direction_info.duration.toPrecision(2) } min</Text>}
+                            { driving_mode === 'DRIVING' && <Text style={{  fontFamily: 'Mulish', fontSize: 14, alignSelf: 'center', marginLeft: 6, color: '#00897E'  }} >{ formatDuration() }</Text>}
                         </TouchableOpacity>
 
                         <TouchableOpacity onPress={() => changeDrivingMode('WALKING') } style={[{ flexDirection: 'row', borderRadius: 40, paddingHorizontal: 10, paddingVertical: 4 }, driving_mode === 'WALKING' ? { backgroundColor: '#00897E25' } : { color: '#3C4043' }]}>
                             <MaterialIcons name="directions-walk" size={20} style={[ driving_mode === 'WALKING' ? { color: '#00897E' } : { color: '#3C4043' } ]} />
-                            { driving_mode === 'WALKING' && <Text style={{  fontFamily: 'Mulish', fontSize: 14, alignSelf: 'center', marginLeft: 6, color: '#00897E'  }} >{ direction_info.duration.toPrecision(2) } min</Text>}
+                            { driving_mode === 'WALKING' && <Text style={{  fontFamily: 'Mulish', fontSize: 14, alignSelf: 'center', marginLeft: 6, color: '#00897E'  }} >{ formatDuration() }</Text>}
                             {/* <Text style={[{  fontFamily: 'Mulish', fontSize: 14, alignSelf: 'center', marginLeft: 4  }, driving_mode === 'WALKING' ? { color: '#00897E' } : { color: '#3C4043' } ]} >16 min</Text> */}
                         </TouchableOpacity>
                     </View>
@@ -613,4 +650,4 @@ const styles = StyleSheet.create({
     }
 })
 
-export default home
+export default Home
