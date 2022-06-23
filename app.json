@@ -23,7 +23,7 @@
       "package": "com.proxypharm.josiashod",
       "config": {
         "googleMaps": {
-          "apiKey": "AIzaSyCOC_mU5BNm0A0l2BVrYbFPeuJKTwNJvec"
+          "apiKey": "YOUR_GOOGLE_API_KEY"
         }
       }
     },

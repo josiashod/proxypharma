@@ -6,7 +6,7 @@ import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps'
 import * as Location from 'expo-location';
 import MapViewDirections from 'react-native-maps-directions'
 import { Api } from '../api/lienapi'
-const GOOGLE_API_KEY = "AIzaSyCOC_mU5BNm0A0l2BVrYbFPeuJKTwNJvec"
+const GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY"
 import { isEqual } from 'lodash'
 
 import { useSelector, useDispatch } from 'react-redux'
